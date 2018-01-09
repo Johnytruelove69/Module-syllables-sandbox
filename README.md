@@ -1,0 +1,47 @@
+# Module-syllables-sandbox
+local export = {}
+
+local U = mw.ustring.char
+local UTF8_char = "[\1-\127\194-\244][\128-\191]*"
+
+local function characters_to_set(str)
+	local set = {}
+	for character in string.gmatch(str, UTF8_char) do
+		set[character] = true
+	end
+	return set
+end
+
+local function make_set(...)
+	if select(2, ...) then
+		local set = {}
+		for i, char in ipairs{ ... } do
+			set[char] = true
+		end
+		return set
+	else
+		return characters_to_set(select(1, ...))
+	end
+end
+
+local info = {}
+info.is_vowel = make_set "iyɨʉɯuɪʏʊeøɘɵɤoəɚɛœɜɝɞʌɔæɐaɶɑɒäëïöüÿ"
+info.nonsyllabic = make_set(U(0x311), U(0x32F))
+
+function export.count(IPA)
+	local count = 0
+	local prev
+	for character in string.gmatch(IPA, UTF8_char) do
+		if info.is_vowel[character] then
+			count = count + 1
+		elseif info.nonsyllabic[character] then
+			count = count - 1
+		end
+		prev = character
+	end
+	return count
+end
+
+mw.logObject(info)
+
+return export
